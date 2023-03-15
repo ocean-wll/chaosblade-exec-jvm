@@ -16,26 +16,16 @@
 
 package com.alibaba.chaosblade.exec.service.build;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-
 import com.alibaba.chaosblade.exec.common.aop.Plugin;
 import com.alibaba.chaosblade.exec.common.model.ModelSpec;
-
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Tag;
+
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * @author Changjun Xiao
@@ -80,8 +70,10 @@ public class BuildUtil {
             }
         });
         List<URL> urls = new ArrayList<URL>();
-        for (String f : jarFiles) {
-            urls.add(new URL("file:" + new File(pluginPath, f).getPath()));
+        if(jarFiles!= null){
+            for (String f : jarFiles) {
+                urls.add(new URL("file:" + new File(pluginPath, f).getPath()));
+            }
         }
         URL[] u = new URL[urls.size()];
         return new URLClassLoader(urls.toArray(u));

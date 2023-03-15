@@ -16,14 +16,13 @@
 
 package com.alibaba.chaosblade.exec.common.model.action.delay;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
 import com.alibaba.chaosblade.exec.common.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Changjun Xiao
@@ -41,6 +40,10 @@ public class DefaultDelayExecutor implements DelayExecutor {
 
     @Override
     public void run(EnhancerModel enhancerModel) throws Exception {
+        Boolean isClusterTest = enhancerModel.getClusterTest();
+        if (isClusterTest == null || !isClusterTest) {
+            return;
+        }
         String time = enhancerModel.getActionFlag(timeFlagSpec.getName());
         Integer sleepTimeInMillis = Integer.valueOf(time);
         int offset = 0;

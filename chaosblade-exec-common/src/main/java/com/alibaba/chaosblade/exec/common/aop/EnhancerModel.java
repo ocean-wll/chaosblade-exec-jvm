@@ -16,15 +16,15 @@
 
 package com.alibaba.chaosblade.exec.common.aop;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.alibaba.chaosblade.exec.common.model.Model;
 import com.alibaba.chaosblade.exec.common.model.action.ActionModel;
 import com.alibaba.chaosblade.exec.common.model.action.delay.TimeoutExecutor;
 import com.alibaba.chaosblade.exec.common.model.action.threadpool.ThreadPoolFullExecutor;
 import com.alibaba.chaosblade.exec.common.model.matcher.MatcherModel;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Changjun Xiao
@@ -43,6 +43,8 @@ public class EnhancerModel {
 
     private TimeoutExecutor timeoutExecutor;
     private ThreadPoolFullExecutor threadPoolFullExecutor;
+
+    private Boolean isClusterTest = false;
 
     public EnhancerModel(ClassLoader classLoader, MatcherModel matcherModel) {
         this.classLoader = classLoader;
@@ -138,7 +140,7 @@ public class EnhancerModel {
     }
 
     public void setThreadPoolFullExecutor(
-        ThreadPoolFullExecutor threadPoolFullExecutor) {
+            ThreadPoolFullExecutor threadPoolFullExecutor) {
         this.threadPoolFullExecutor = threadPoolFullExecutor;
     }
 
@@ -152,7 +154,14 @@ public class EnhancerModel {
     }
 
     public CustomMatcher getMatcher(String key) {
-       return this.customMatcher.get(key);
+        return this.customMatcher.get(key);
     }
 
+    public Boolean getClusterTest() {
+        return isClusterTest;
+    }
+
+    public void setClusterTest(Boolean clusterTest) {
+        isClusterTest = clusterTest;
+    }
 }

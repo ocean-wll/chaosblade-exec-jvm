@@ -26,6 +26,7 @@ public class Okhttp3Enhancer extends HttpEnhancer {
 
     private static final String GET_REQUEST = "request";
     private static final String GET_URL = "url";
+    private static final String GET_HEADER = "header";
     private static final String GET_CONNECTION_TIMEOUT = "connectTimeoutMillis";
     private static final String GET_READ_TIMEOUT = "readTimeoutMillis";
 
@@ -84,4 +85,20 @@ public class Okhttp3Enhancer extends HttpEnhancer {
         return path;
     }
 
+    @Override
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        try {
+            Object request = ReflectUtil.invokeMethod(instance, GET_REQUEST, new Object[0], false);
+            if (request == null) {
+                LOGGER.warn("okhttp3 Request is null, can not get necessary values.");
+                return false;
+            }
+            String uaValue = ReflectUtil.invokeMethod(request, GET_HEADER, new Object[]{CLUSTER_HEADER_UA}, false);
+            String pradarValue = ReflectUtil.invokeMethod(request, GET_HEADER, new Object[]{CLUSTER_HEADER_PRADAR}, false);
+            return CLUSTER_HEADER_UA_VALUE.equals(uaValue) || CLUSTER_HEADER_PRADAR_VALUE_1.equals(pradarValue) || CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(pradarValue);
+        } catch (Exception e) {
+            LOGGER.warn("okhttp3 get cluster header error.", e);
+        }
+        return false;
+    }
 }

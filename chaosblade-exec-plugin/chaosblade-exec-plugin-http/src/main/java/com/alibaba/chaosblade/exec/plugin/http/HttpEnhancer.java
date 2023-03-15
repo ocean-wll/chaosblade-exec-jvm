@@ -16,23 +16,22 @@
 
 package com.alibaba.chaosblade.exec.plugin.http;
 
-import java.lang.reflect.Method;
-import java.net.SocketTimeoutException;
-import java.util.Map;
-
-import com.alibaba.chaosblade.exec.common.aop.matcher.busi.BusinessParamMatcher;
-import com.alibaba.chaosblade.exec.common.constant.ModelConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.chaosblade.exec.common.aop.BeforeEnhancer;
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.aop.matcher.busi.BusinessParamMatcher;
+import com.alibaba.chaosblade.exec.common.constant.ModelConstant;
 import com.alibaba.chaosblade.exec.common.model.action.delay.BaseTimeoutExecutor;
 import com.alibaba.chaosblade.exec.common.model.action.delay.TimeoutExecutor;
 import com.alibaba.chaosblade.exec.common.model.matcher.MatcherModel;
 import com.alibaba.chaosblade.exec.common.util.FlagUtil;
 import com.alibaba.chaosblade.exec.common.util.JsonUtil;
 import com.alibaba.chaosblade.exec.plugin.http.model.CallPointMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
+import java.util.Map;
 
 /**
  * @Author yuhan
@@ -61,7 +60,10 @@ public abstract class HttpEnhancer extends BeforeEnhancer {
             StackTraceElement[] stackTrace = new NullPointerException().getStackTrace();
             enhancerModel.addCustomMatcher(HttpConstant.CALL_POINT_KEY, stackTrace, CallPointMatcher.getInstance());
         }
+        // 只对压测流量生效
+        enhancerModel.setClusterTest(isClusterTest(object,methodArguments));
         enhancerModel.setTimeoutExecutor(createTimeoutExecutor(classLoader, timeout, className));
+
         try {
             Map<String, Map<String, String>> businessParams = getBusinessParams(className, object, method, methodArguments);
             if (businessParams != null) {
@@ -113,6 +115,21 @@ public abstract class HttpEnhancer extends BeforeEnhancer {
         };
     }
 
+    /**
+     * 是否是压测流量
+     * 请求头中包含如下header即为压测流量
+     * User-Agent:PerfomanceTest
+     * p-pradar-cluster-test:true
+     * p-pradar-cluster-test:1
+     *
+     * @param instance
+     * @param object
+     * @return
+     */
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        return false;
+    }
+
 
     protected abstract void postDoBeforeAdvice(EnhancerModel enhancerModel);
 
@@ -124,5 +141,6 @@ public abstract class HttpEnhancer extends BeforeEnhancer {
      * @return
      */
     protected abstract String getUrl(Object instance, Object[] object) throws Exception;
+
 
 }
