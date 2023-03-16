@@ -1,5 +1,6 @@
 package com.alibaba.chaosblade.exec.common.context;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,9 +23,10 @@ public class ThreadLocalContext {
         return local.get();
     }
 
-    public static class Content{
-        private  StackTraceElement[] stackTraceElements;
+    public static class Content {
+        private StackTraceElement[] stackTraceElements;
         private Map<String, Map<String, String>> businessData;
+        private final Map<String, String> clusterHeader = new HashMap<String, String>();
 
         public StackTraceElement[] getStackTraceElements() {
             return stackTraceElements;
@@ -38,8 +40,20 @@ public class ThreadLocalContext {
             return businessData;
         }
 
-        public void settValue(Map<String, Map<String, String>>  businessData) {
+        public void settValue(Map<String, Map<String, String>> businessData) {
             this.businessData = businessData;
+        }
+
+        public void setBusinessData(Map<String, Map<String, String>> businessData) {
+            this.businessData = businessData;
+        }
+
+        public String getClusterHeader(String key) {
+            return clusterHeader.get(key);
+        }
+
+        public void addClusterHeader(String key, String value) {
+            clusterHeader.put(key, value);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.alibaba.chaosblade.exec.plugin.http.asynchttpclient;
 
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.constant.ClusterConstant;
 import com.alibaba.chaosblade.exec.common.constant.ModelConstant;
 import com.alibaba.chaosblade.exec.common.context.GlobalContext;
 import com.alibaba.chaosblade.exec.common.context.ThreadLocalContext;
@@ -30,6 +31,7 @@ public class HttpProtocolEnhancer extends HttpEnhancer {
     @Override
     public EnhancerModel doBeforeAdvice(ClassLoader classLoader, String className, Object object, Method method,
                                         Object[] methodArguments) throws Exception {
+        addClusterHeader(className, object, method, methodArguments);
         super.doBeforeAdvice(classLoader, className, object, method, methodArguments);
         if (!shouldAddCallPoint()) {
             return null;
@@ -83,6 +85,37 @@ public class HttpProtocolEnhancer extends HttpEnhancer {
         }));
         ThreadLocalContext.getInstance().set(content);
         return null;
+    }
+
+    private void addClusterHeader(String className, Object object, Method method, Object[] methodArguments) {
+        try {
+            final Object headers = getHttpHeader(className, object, method, methodArguments);
+            if (headers == null) {
+                return;
+            }
+            ThreadLocalContext.Content content;
+            if (ThreadLocalContext.getInstance().get() == null) {
+                content = new ThreadLocalContext.Content();
+            } else {
+                content = ThreadLocalContext.getInstance().get();
+            }
+
+            List<String> uaValues = ReflectUtil.invokeMethod(headers, "get", new Object[]{ClusterConstant.CLUSTER_HEADER_UA}, false);
+            if (uaValues != null && !uaValues.isEmpty()) {
+                content.addClusterHeader(ClusterConstant.CLUSTER_HEADER_UA, uaValues.get(0));
+            }
+
+            List<String> pradarValues = ReflectUtil.invokeMethod(headers, "get",
+                    new Object[]{ClusterConstant.CLUSTER_HEADER_PRADAR}, false);
+            if (pradarValues != null && !pradarValues.isEmpty()) {
+                content.addClusterHeader(ClusterConstant.CLUSTER_HEADER_PRADAR, pradarValues.get(0));
+            }
+
+            ThreadLocalContext.getInstance().set(content);
+        } catch (Exception e) {
+            LOGGER.warn("asyncClient addClusterHeader error", e);
+        }
+
     }
 
     private Object getHttpHeader(String className, Object object, Method method,

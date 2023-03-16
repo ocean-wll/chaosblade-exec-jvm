@@ -1,15 +1,7 @@
 package com.alibaba.chaosblade.exec.plugin.http.asynchttpclient;
 
-import static com.alibaba.chaosblade.exec.plugin.http.HttpConstant.DEFAULT_TIMEOUT;
-
-import java.lang.reflect.Method;
-import java.net.SocketTimeoutException;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.constant.ClusterConstant;
 import com.alibaba.chaosblade.exec.common.context.ThreadLocalContext;
 import com.alibaba.chaosblade.exec.common.model.action.delay.TimeoutExecutor;
 import com.alibaba.chaosblade.exec.common.util.FlagUtil;
@@ -19,6 +11,14 @@ import com.alibaba.chaosblade.exec.plugin.http.HttpEnhancer;
 import com.alibaba.chaosblade.exec.plugin.http.UrlUtils;
 import com.alibaba.chaosblade.exec.plugin.http.enhancer.InternalPointCut;
 import com.alibaba.chaosblade.exec.plugin.http.model.CallPointMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
+import java.util.Map;
+
+import static com.alibaba.chaosblade.exec.plugin.http.HttpConstant.DEFAULT_TIMEOUT;
 
 /**
  * @author shizhi.zhu@qunar.com
@@ -36,7 +36,8 @@ public class AsyncHttpClientHandlerEnhancer extends HttpEnhancer {
         ThreadLocalContext.Content content = ThreadLocalContext.getInstance().get();
         enhancerModel.addMatcher(HttpConstant.ASYNC_HTTP_TARGET_NAME, "true");
         if (FlagUtil.hasFlag("http", HttpConstant.CALL_POINT_KEY)) {
-            enhancerModel.addCustomMatcher(HttpConstant.CALL_POINT_KEY, content.getStackTraceElements(), CallPointMatcher.getInstance()); }
+            enhancerModel.addCustomMatcher(HttpConstant.CALL_POINT_KEY, content.getStackTraceElements(), CallPointMatcher.getInstance());
+        }
     }
 
     @Override
@@ -46,6 +47,17 @@ public class AsyncHttpClientHandlerEnhancer extends HttpEnhancer {
             return null;
         }
         return content.getBusinessData();
+    }
+
+    @Override
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        ThreadLocalContext.Content content = ThreadLocalContext.getInstance().get();
+        if (content == null) {
+            return false;
+        }
+        return ClusterConstant.CLUSTER_HEADER_UA_VALUE.equals(content.getClusterHeader(ClusterConstant.CLUSTER_HEADER_UA))
+                || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_1.equals(content.getClusterHeader(ClusterConstant.CLUSTER_HEADER_PRADAR))
+                || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(content.getClusterHeader(ClusterConstant.CLUSTER_HEADER_PRADAR));
     }
 
     @Override
@@ -74,6 +86,7 @@ public class AsyncHttpClientHandlerEnhancer extends HttpEnhancer {
         }
         return DEFAULT_TIMEOUT;
     }
+
     @Override
     protected TimeoutExecutor createTimeoutExecutor(ClassLoader classLoader, final long timeout, String className) {
         return new TimeoutExecutor() {

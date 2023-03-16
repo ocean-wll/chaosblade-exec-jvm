@@ -1,6 +1,7 @@
 package com.alibaba.chaosblade.exec.plugin.http.httpclient4;
 
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.constant.ClusterConstant;
 import com.alibaba.chaosblade.exec.common.util.BusinessParamUtil;
 import com.alibaba.chaosblade.exec.common.util.ReflectUtil;
 import com.alibaba.chaosblade.exec.plugin.http.HttpEnhancer;
@@ -21,7 +22,6 @@ import static com.alibaba.chaosblade.exec.plugin.http.HttpConstant.*;
  */
 public class HttpClient4Enhancer extends HttpEnhancer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClient4Enhancer.class);
-
     private static final String GET_PARAMS = "getParams";
     private static final String PARAM_CONFIG = "org.apache.http.client.params.HttpClientParamConfig";
     private static final String GET_REQUEST_CONFIG = "getRequestConfig";
@@ -29,12 +29,10 @@ public class HttpClient4Enhancer extends HttpEnhancer {
     private static final String REQUEST_GET_SOCKET_TIMEOUT = "getSocketTimeout";
     private static final String GET_CONFIG = "getConfig";
     private static final String GET_FIRST_HEADER = "getFirstHeader";
-
     private static final String CLIENT_GET_CONNECTION_TIMEOUT = "getConnectionTimeout";
     private static final String CLIENT_GET_SOCKET_TIMEOUT = "getSoTimeout";
     private static final String HTTP_HEADER_GET_VALUE = "getValue";
     private static final String HTTP_CONNECTION_PARAMS = "org.apache.http.params.HttpConnectionParams";
-
 
     @Override
     protected void postDoBeforeAdvice(EnhancerModel enhancerModel) {
@@ -120,5 +118,32 @@ public class HttpClient4Enhancer extends HttpEnhancer {
 
     public String getMethodName() {
         return HTTPCLIENT4 + getURI;
+    }
+
+    @Override
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        try {
+            Object httpRequestBase = object[1];
+            if (httpRequestBase == null) {
+                LOGGER.warn("httpclient4 Request is null, can not get necessary values.");
+                return false;
+            }
+            String uaValue = "";
+            String pradarValue = "";
+            Object uaHeader = ReflectUtil.invokeMethod(httpRequestBase, "getFirstHeader",
+                    new Object[]{ClusterConstant.CLUSTER_HEADER_UA}, false);
+            if (uaHeader != null) {
+                uaValue = ReflectUtil.invokeMethod(uaHeader, "getValue", new Object[0], false);
+            }
+            Object pradarHeader = ReflectUtil.invokeMethod(httpRequestBase, "getFirstHeader",
+                    new Object[]{ClusterConstant.CLUSTER_HEADER_PRADAR}, false);
+            if (pradarHeader != null) {
+                pradarValue = ReflectUtil.invokeMethod(pradarHeader, "getValue", new Object[0], false);
+            }
+            return ClusterConstant.CLUSTER_HEADER_UA_VALUE.equals(uaValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_1.equals(pradarValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(pradarValue);
+        } catch (Exception e) {
+            LOGGER.warn("httpclient4 get cluster header error.", e);
+        }
+        return false;
     }
 }
