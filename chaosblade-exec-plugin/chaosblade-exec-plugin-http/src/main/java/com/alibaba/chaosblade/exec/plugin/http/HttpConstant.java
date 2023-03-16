@@ -31,11 +31,5 @@ public class HttpConstant {
     public static final String HTTPCLIENT3_TARGET_NAME = "httpclient3";
     public static final String HTTPCLIENT4_TARGET_NAME = "httpclient4";
     public static final String OKHTTP3_TARGET_NAME = "okhttp3";
-    public static final String CLUSTER_HEADER_UA = "User-Agent";
-    public static final String CLUSTER_HEADER_UA_VALUE = "PerfomanceTest";
-    public static final String CLUSTER_HEADER_PRADAR = "p-pradar-cluster-test";
-    public static final String CLUSTER_HEADER_PRADAR_VALUE_1 = "1";
-    public static final String CLUSTER_HEADER_PRADAR_VALUE_TRUE = "true";
-
 
 }

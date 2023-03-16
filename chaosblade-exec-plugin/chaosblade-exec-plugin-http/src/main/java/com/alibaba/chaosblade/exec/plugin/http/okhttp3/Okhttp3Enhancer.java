@@ -1,6 +1,7 @@
 package com.alibaba.chaosblade.exec.plugin.http.okhttp3;
 
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.constant.ClusterConstant;
 import com.alibaba.chaosblade.exec.common.util.BusinessParamUtil;
 import com.alibaba.chaosblade.exec.common.util.ReflectUtil;
 import com.alibaba.chaosblade.exec.plugin.http.HttpEnhancer;
@@ -93,9 +94,10 @@ public class Okhttp3Enhancer extends HttpEnhancer {
                 LOGGER.warn("okhttp3 Request is null, can not get necessary values.");
                 return false;
             }
-            String uaValue = ReflectUtil.invokeMethod(request, GET_HEADER, new Object[]{CLUSTER_HEADER_UA}, false);
-            String pradarValue = ReflectUtil.invokeMethod(request, GET_HEADER, new Object[]{CLUSTER_HEADER_PRADAR}, false);
-            return CLUSTER_HEADER_UA_VALUE.equals(uaValue) || CLUSTER_HEADER_PRADAR_VALUE_1.equals(pradarValue) || CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(pradarValue);
+            String uaValue = ReflectUtil.invokeMethod(request, GET_HEADER,
+                    new Object[]{ClusterConstant.CLUSTER_HEADER_UA}, false);
+            String pradarValue = ReflectUtil.invokeMethod(request, GET_HEADER, new Object[]{ClusterConstant.CLUSTER_HEADER_PRADAR}, false);
+            return ClusterConstant.CLUSTER_HEADER_UA_VALUE.equals(uaValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_1.equals(pradarValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(pradarValue);
         } catch (Exception e) {
             LOGGER.warn("okhttp3 get cluster header error.", e);
         }

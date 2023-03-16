@@ -61,7 +61,7 @@ public abstract class HttpEnhancer extends BeforeEnhancer {
             enhancerModel.addCustomMatcher(HttpConstant.CALL_POINT_KEY, stackTrace, CallPointMatcher.getInstance());
         }
         // 只对压测流量生效
-        enhancerModel.setClusterTest(isClusterTest(object,methodArguments));
+        enhancerModel.setClusterTest(isClusterTest(object, methodArguments));
         enhancerModel.setTimeoutExecutor(createTimeoutExecutor(classLoader, timeout, className));
 
         try {
@@ -113,21 +113,6 @@ public abstract class HttpEnhancer extends BeforeEnhancer {
                 return new SocketTimeoutException("Read timed out");
             }
         };
-    }
-
-    /**
-     * 是否是压测流量
-     * 请求头中包含如下header即为压测流量
-     * User-Agent:PerfomanceTest
-     * p-pradar-cluster-test:true
-     * p-pradar-cluster-test:1
-     *
-     * @param instance
-     * @param object
-     * @return
-     */
-    protected Boolean isClusterTest(Object instance, Object[] object) {
-        return false;
     }
 
 

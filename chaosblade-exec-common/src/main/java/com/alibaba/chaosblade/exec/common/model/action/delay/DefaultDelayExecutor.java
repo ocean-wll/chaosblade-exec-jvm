@@ -21,6 +21,8 @@ import com.alibaba.chaosblade.exec.common.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +34,7 @@ public class DefaultDelayExecutor implements DelayExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDelayExecutor.class);
     private TimeFlagSpec timeFlagSpec;
     private TimeOffsetFlagSpec timeOffsetFlagSpec;
+    private final List<String> filter_spec = Arrays.asList("http", "servlet");
 
     public DefaultDelayExecutor(TimeFlagSpec timeFlagSpec, TimeOffsetFlagSpec timeOffsetFlagSpec) {
         this.timeFlagSpec = timeFlagSpec;
@@ -41,7 +44,8 @@ public class DefaultDelayExecutor implements DelayExecutor {
     @Override
     public void run(EnhancerModel enhancerModel) throws Exception {
         Boolean isClusterTest = enhancerModel.getClusterTest();
-        if (isClusterTest == null || !isClusterTest) {
+        // 目前只有在filter_spec中的类型对应的压测流量才会有延迟
+        if (filter_spec.contains(enhancerModel.getTarget()) && (isClusterTest == null || !isClusterTest)) {
             return;
         }
         String time = enhancerModel.getActionFlag(timeFlagSpec.getName());

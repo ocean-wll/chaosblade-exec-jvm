@@ -1,14 +1,14 @@
 package com.alibaba.chaosblade.exec.plugin.http.resttemplate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
+import com.alibaba.chaosblade.exec.common.constant.ClusterConstant;
 import com.alibaba.chaosblade.exec.common.util.BusinessParamUtil;
 import com.alibaba.chaosblade.exec.common.util.ReflectUtil;
 import com.alibaba.chaosblade.exec.plugin.http.HttpEnhancer;
 import com.alibaba.chaosblade.exec.plugin.http.UrlUtils;
 import com.alibaba.chaosblade.exec.spi.BusinessDataGetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -28,6 +28,7 @@ public class RestTemplateEnhancer extends HttpEnhancer {
             "org.springframework.http.client.HttpComponentsClientHttpRequestFactory";
     public static final String OK_HTTP_3_CLIENT_HTTP_REQUEST_FACTORY =
             "org.springframework.http.client.OkHttp3ClientHttpRequestFactory";
+    public static final String REQUEST_ENTITY = "requestEntity";
 
     @Override
     protected void postDoBeforeAdvice(EnhancerModel enhancerModel) {
@@ -98,5 +99,32 @@ public class RestTemplateEnhancer extends HttpEnhancer {
             return null;
         }
         return UrlUtils.getUrlExcludeQueryParameters(object.toString());
+    }
+
+    @Override
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        try {
+            Object callback = object[2];
+            if (!callback.getClass().getName().equals("org.springframework.web.client.RestTemplate$HttpEntityRequestCallback")) {
+                LOGGER.warn("argument is not HttpEntityRequestCallback, className:{}", callback.getClass().getName());
+                return false;
+            }
+            Object requestEntity = ReflectUtil.getFieldValue(callback, REQUEST_ENTITY, false);
+            if (requestEntity == null) {
+                LOGGER.warn("requestEntity from HttpEntityRequestCallback not found.");
+                return false;
+            }
+            Object httpHeaders = ReflectUtil.invokeMethod(requestEntity, "getHeaders", new Object[0], false);
+            if (httpHeaders == null) {
+                LOGGER.warn("httpHeaders is empty.");
+                return false;
+            }
+            String uaValue = ReflectUtil.invokeMethod(httpHeaders, "getFirst", new Object[]{ClusterConstant.CLUSTER_HEADER_UA}, false);
+            String pradarValue = ReflectUtil.invokeMethod(httpHeaders, "getFirst", new Object[]{ClusterConstant.CLUSTER_HEADER_PRADAR}, false);
+            return ClusterConstant.CLUSTER_HEADER_UA_VALUE.equals(uaValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_1.equals(pradarValue) || ClusterConstant.CLUSTER_HEADER_PRADAR_VALUE_TRUE.equals(pradarValue);
+        } catch (Exception e) {
+            LOGGER.warn("restTemplate get header error", e);
+        }
+        return false;
     }
 }

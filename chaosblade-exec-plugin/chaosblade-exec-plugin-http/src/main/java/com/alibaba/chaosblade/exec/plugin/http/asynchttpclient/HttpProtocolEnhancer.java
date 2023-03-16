@@ -1,23 +1,22 @@
 package com.alibaba.chaosblade.exec.plugin.http.asynchttpclient;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-
+import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
 import com.alibaba.chaosblade.exec.common.constant.ModelConstant;
+import com.alibaba.chaosblade.exec.common.context.GlobalContext;
+import com.alibaba.chaosblade.exec.common.context.ThreadLocalContext;
 import com.alibaba.chaosblade.exec.common.util.BusinessParamUtil;
+import com.alibaba.chaosblade.exec.common.util.FlagUtil;
+import com.alibaba.chaosblade.exec.common.util.ReflectUtil;
+import com.alibaba.chaosblade.exec.plugin.http.HttpConstant;
 import com.alibaba.chaosblade.exec.plugin.http.HttpEnhancer;
+import com.alibaba.chaosblade.exec.plugin.http.enhancer.InternalPointCut;
 import com.alibaba.chaosblade.exec.spi.BusinessDataGetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.chaosblade.exec.common.aop.EnhancerModel;
-import com.alibaba.chaosblade.exec.common.context.GlobalContext;
-import com.alibaba.chaosblade.exec.common.context.ThreadLocalContext;
-import com.alibaba.chaosblade.exec.common.util.FlagUtil;
-import com.alibaba.chaosblade.exec.common.util.ReflectUtil;
-import com.alibaba.chaosblade.exec.plugin.http.HttpConstant;
-import com.alibaba.chaosblade.exec.plugin.http.enhancer.InternalPointCut;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 import static com.alibaba.chaosblade.exec.plugin.http.HttpConstant.TARGET_NAME;
 
@@ -107,7 +106,7 @@ public class HttpProtocolEnhancer extends HttpEnhancer {
         return headers;
     }
 
-
+    @Override
     protected boolean shouldAddCallPoint() {
         return FlagUtil.hasFlag("http", HttpConstant.CALL_POINT_KEY);
     }

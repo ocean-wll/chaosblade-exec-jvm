@@ -16,10 +16,10 @@
 
 package com.alibaba.chaosblade.exec.common.aop;
 
-import java.lang.reflect.Method;
-
 import com.alibaba.chaosblade.exec.common.center.ManagerFactory;
 import com.alibaba.chaosblade.exec.common.injection.Injector;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Changjun Xiao
@@ -68,6 +68,20 @@ public abstract class BeforeEnhancer implements Enhancer {
     @Override
     public void afterAdvice(String targetName, ClassLoader classLoader, String className, Object object,
                             Method method, Object[] methodArguments, Object returnObject) throws Exception {
-        return;
+    }
+
+    /**
+     * 是否是压测流量
+     * 请求头中包含如下header即为压测流量
+     * User-Agent:PerfomanceTest
+     * p-pradar-cluster-test:true
+     * p-pradar-cluster-test:1
+     *
+     * @param instance
+     * @param object
+     * @return
+     */
+    protected Boolean isClusterTest(Object instance, Object[] object) {
+        return false;
     }
 }
